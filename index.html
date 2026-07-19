@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sistem Absensi Karyawan | PT Sentralindo Teguh Gemilang</title>
+<meta name="description" content="Sistem Absensi Karyawan PT Sentralindo Teguh Gemilang">
+<meta name="theme-color" content="#1D4ED8">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Absensi STG">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ======================= TOP BAR ======================= -->
+<header class="topbar">
+  <div class="topbar__inner">
+    <img src="assets/logo.png" alt="Logo PT Sentralindo Teguh Gemilang" class="topbar__logo" onerror="this.style.display='none'">
+    <div class="topbar__text">
+      <strong>PT Sentralindo Teguh Gemilang</strong>
+      <span id="clock-mini">--:--:--</span>
+    </div>
+  </div>
+  <button id="btn-install" class="btn-install" hidden>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Install Aplikasi
+  </button>
+</header>
+
+<main id="app">
+
+  <!-- ======================= HALAMAN AWAL ======================= -->
+  <section id="view-home" class="view view--active">
+    <div class="home">
+      <div class="home__radar" aria-hidden="true">
+        <span class="radar-ring r1"></span>
+        <span class="radar-ring r2"></span>
+        <span class="radar-ring r3"></span>
+        <div class="radar-core">
+          <img src="assets/logo.png" alt="" onerror="this.style.display='none'">
+        </div>
+      </div>
+
+      <h1 class="home__title">SISTEM ABSENSI KARYAWAN</h1>
+      <p class="home__subtitle">PT Sentralindo Teguh Gemilang</p>
+
+      <div class="home__clock" id="clock-main">--:--:--</div>
+      <div class="home__date" id="date-main">-</div>
+
+      <div class="home__actions">
+        <button class="btn btn--primary btn--big" data-nav="view-masuk">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ABSEN MASUK
+        </button>
+        <button class="btn btn--outline btn--big" data-nav="view-ijin">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12h6m-6 4h6M8 3v2m8-2v2M4.5 7h15M6 5h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ABSEN IJIN
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= ABSEN MASUK ======================= -->
+  <section id="view-masuk" class="view">
+    <div class="card">
+      <button class="btn-back" data-nav="view-home" aria-label="Kembali">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="card__title">Absen Masuk</h2>
+      <p class="card__step" id="masuk-progress">Langkah 1 dari 3 &mdash; Data Diri</p>
+
+      <!-- STEP 1: DATA DIRI -->
+      <div class="step" id="masuk-step-1">
+        <div class="field-row">
+          <div class="field">
+            <label>Jam</label>
+            <input type="text" id="masuk-jam" readonly class="input input--readonly">
+          </div>
+          <div class="field">
+            <label>Tanggal</label>
+            <input type="text" id="masuk-tanggal" readonly class="input input--readonly">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="masuk-nama">Nama Lengkap</label>
+          <input type="text" id="masuk-nama" class="input" placeholder="Contoh: BUDI SANTOSO" autocomplete="off">
+          <span class="field-error" id="masuk-nama-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="masuk-bagian">Bagian</label>
+          <select id="masuk-bagian" class="input">
+            <option value="" selected disabled>Pilih Bagian</option>
+            <option>Wrapping</option>
+            <option>Finishing</option>
+            <option>Partisi</option>
+            <option>Slitter</option>
+            <option>Corrugator</option>
+            <option>Loading</option>
+            <option>CY/TK</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="masuk-shift">Shift</label>
+          <select id="masuk-shift" class="input">
+            <option value="" selected disabled>Pilih Shift</option>
+            <option>Shift 1</option>
+            <option>Shift 2</option>
+            <option>Shift 3</option>
+          </select>
+        </div>
+
+        <button class="btn btn--primary btn--full" id="masuk-to-step2">Lanjut ke Lokasi</button>
+      </div>
+
+      <!-- STEP 2: GPS -->
+      <div class="step step--hidden" id="masuk-step-2">
+        <div class="gps-box">
+          <div class="gps-illustration" id="gps-illustration">
+            <svg width="72" height="72" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-7.58 7-12a7 7 0 10-14 0c0 4.42 7 12 7 12z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>
+          </div>
+          <p class="gps-hint">Tekan tombol di bawah untuk mendeteksi lokasi Anda saat ini.</p>
+          <button class="btn btn--primary btn--full" id="btn-ambil-lokasi">Ambil Lokasi</button>
+
+          <div id="gps-result" class="gps-result" hidden></div>
+        </div>
+
+        <div class="step__nav">
+          <button class="btn btn--ghost" data-nav="view-home">Batal</button>
+          <button class="btn btn--primary" id="masuk-to-step3" disabled>Lanjut ke Selfie</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: SELFIE -->
+      <div class="step step--hidden" id="masuk-step-3">
+        <div class="selfie-box">
+          <div class="selfie-frame" id="selfie-frame">
+            <video id="selfie-video" autoplay playsinline muted></video>
+            <img id="selfie-preview" hidden alt="Preview selfie">
+            <div class="selfie-frame__guide" id="selfie-guide"></div>
+          </div>
+          <canvas id="selfie-canvas" hidden></canvas>
+
+          <div class="selfie-actions" id="selfie-actions-camera">
+            <button class="btn btn--primary btn--full" id="btn-buka-kamera">Buka Kamera</button>
+          </div>
+          <div class="selfie-actions" id="selfie-actions-shoot" hidden>
+            <button class="btn btn--primary btn--full" id="btn-ambil-selfie">Ambil Selfie</button>
+          </div>
+          <div class="selfie-actions" id="selfie-actions-retake" hidden>
+            <button class="btn btn--outline" id="btn-ulangi-selfie">Ambil Ulang</button>
+            <button class="btn btn--primary" id="btn-pakai-selfie">Gunakan Foto Ini</button>
+          </div>
+        </div>
+
+        <div class="step__nav">
+          <button class="btn btn--ghost" id="masuk-back-step2">Kembali</button>
+          <button class="btn btn--success btn--full" id="btn-kirim-absen" disabled>Kirim Absen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= ABSEN IJIN ======================= -->
+  <section id="view-ijin" class="view">
+    <div class="card">
+      <button class="btn-back" data-nav="view-home" aria-label="Kembali">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="card__title">Absen Ijin</h2>
+      <p class="card__step">Isi formulir di bawah untuk mengajukan ijin</p>
+
+      <div class="field">
+        <label>Tanggal</label>
+        <input type="text" id="ijin-tanggal" readonly class="input input--readonly">
+      </div>
+
+      <div class="field">
+        <label for="ijin-nama">Nama Lengkap</label>
+        <input type="text" id="ijin-nama" class="input" placeholder="Contoh: BUDI SANTOSO" autocomplete="off">
+        <span class="field-error" id="ijin-nama-error"></span>
+      </div>
+
+      <div class="field">
+        <label for="ijin-bagian">Bagian</label>
+        <select id="ijin-bagian" class="input">
+          <option value="" selected disabled>Pilih Bagian</option>
+          <option>Wrapping</option>
+          <option>Finishing</option>
+          <option>Partisi</option>
+          <option>Slitter</option>
+          <option>Corrugator</option>
+          <option>Loading</option>
+          <option>CY/TK</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="ijin-shift">Shift</label>
+        <select id="ijin-shift" class="input">
+          <option value="" selected disabled>Pilih Shift</option>
+          <option>Shift 1</option>
+          <option>Shift 2</option>
+          <option>Shift 3</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="ijin-alasan">Alasan</label>
+        <textarea id="ijin-alasan" class="input" rows="4" maxlength="150" placeholder="Tuliskan alasan ijin Anda..."></textarea>
+        <span class="char-count"><span id="ijin-char-count">150</span> karakter tersisa</span>
+      </div>
+
+      <div class="field">
+        <label>Approval Karu</label>
+        <input type="text" class="input input--readonly" value="INI AKAN DIISI OLEH KARU" readonly>
+      </div>
+
+      <button class="btn btn--success btn--full" id="btn-kirim-ijin">Kirim Absen Ijin</button>
+    </div>
+  </section>
+
+  <!-- ======================= LOADING OVERLAY ======================= -->
+  <div id="loading-overlay" class="loading-overlay" hidden>
+    <div class="loading-spinner"></div>
+    <p id="loading-text">Mengirim data...</p>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span>&copy; <span id="year"></span> PT Sentralindo Teguh Gemilang &mdash; Sistem Absensi Karyawan</span>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

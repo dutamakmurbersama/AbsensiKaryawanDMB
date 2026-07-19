@@ -1,7 +1,7 @@
 {
-  "name": "Sistem Absensi Karyawan - PT Sentralindo Teguh Gemilang",
+  "name": "Sistem Absensi Karyawan - PT Duta Makmur Bersama",
   "short_name": "Absensi STG",
-  "description": "Aplikasi absensi karyawan dengan verifikasi lokasi GPS dan selfie untuk PT Sentralindo Teguh Gemilang.",
+  "description": "Aplikasi absensi karyawan dengan verifikasi lokasi GPS dan selfie untuk PT Duta Makmur Bersama.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

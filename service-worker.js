@@ -1,11 +1,11 @@
 /* ==========================================================================
-   SISTEM ABSENSI KARYAWAN — PT Sentralindo Teguh Gemilang
+   SISTEM ABSENSI KARYAWAN — PT Duta Makmur Bersama
    service-worker.js
    ========================================================================== */
 
 // Naikkan angka versi ini setiap kali Anda mengubah file HTML/CSS/JS
 // agar pengguna otomatis mendapatkan versi terbaru.
-const CACHE_NAME = "absensi-stg-v2";
+const CACHE_NAME = "absensi-stg-v1";
 
 const APP_SHELL = [
   "./",

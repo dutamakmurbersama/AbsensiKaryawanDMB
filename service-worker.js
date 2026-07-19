@@ -5,7 +5,7 @@
 
 // Naikkan angka versi ini setiap kali Anda mengubah file HTML/CSS/JS
 // agar pengguna otomatis mendapatkan versi terbaru.
-const CACHE_NAME = "absensi-stg-v1";
+const CACHE_NAME = "absensi-stg-v2";
 
 const APP_SHELL = [
   "./",

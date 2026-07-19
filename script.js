@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SISTEM ABSENSI KARYAWAN — PT Sentralindo Teguh Gemilang
+   SISTEM ABSENSI KARYAWAN — PT Duta Makmur Bersama
    script.js
    ========================================================================== */
 
@@ -9,20 +9,23 @@
 const CONFIG = {
   // Tempel URL Web App Google Apps Script Anda di sini setelah deploy.
   // Panduan lengkap ada di file PANDUAN-PEMULA.md
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwP82DNrZaJnkcQ1SO2bcegXD4YMCEP72QlT-5EN8gAEV9Spy7jo-ivOeWlzxmjYd2WBw/exec",
+  SCRIPT_URL: "PASTE_URL_WEB_APP_GOOGLE_APPS_SCRIPT_DI_SINI",
 
   // Koordinat lokasi kantor / pabrik. Ganti dengan koordinat asli Anda.
   // Cara mendapatkan koordinat: buka Google Maps, klik kanan pada lokasi
   // kantor, lalu klik angka koordinat yang muncul untuk menyalinnya.
-  officeLat: -6.262529,
-  officeLng: 107.135409,
+  officeLat: -6.300000,
+  officeLng: 107.150000,
 
   // Radius absen yang diizinkan, dalam meter.
   radiusMeters: 100,
 
   // Kualitas kompresi foto selfie (0.1 - 1.0) dan lebar maksimal (px).
-  photoQuality: 0.7,
-  photoMaxWidth: 640
+  // Nilai ini sudah diatur agar ukuran file kecil (biasanya di bawah 100 KB)
+  // sehingga karyawan tidak perlu menunggu lama saat mengirim absen,
+  // namun wajah dan seragam tetap terlihat jelas untuk verifikasi.
+  photoQuality: 0.55,
+  photoMaxWidth: 480
 };
 
 /* ======================================================================
@@ -250,11 +253,12 @@ $("btn-ambil-lokasi").addEventListener("click", () => {
   );
 });
 
-$("masuk-to-step3").addEventListener("click", () => {
+$("masuk-to-step3").addEventListener("click", async () => {
   if (!state.masuk.lokasi || !state.masuk.lokasi.withinRadius) return;
   $("masuk-step-2").classList.add("step--hidden");
   $("masuk-step-3").classList.remove("step--hidden");
   $("masuk-progress").textContent = "Langkah 3 dari 3 — Ambil Selfie";
+  await showAlert("info", "Perlihatkan Wajah & Seragam Anda", "Posisikan wajah dan seragam kerja Anda di dalam bingkai sebelum menekan tombol Ambil Selfie.");
 });
 
 $("masuk-back-step2").addEventListener("click", () => {

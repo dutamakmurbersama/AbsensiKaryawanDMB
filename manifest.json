@@ -1,13 +1,13 @@
 {
   "name": "Sistem Absensi Karyawan - PT Duta Makmur Bersama",
-  "short_name": "Absensi STG",
+  "short_name": "Absensi DMB",
   "description": "Aplikasi absensi karyawan dengan verifikasi lokasi GPS dan selfie untuk PT Duta Makmur Bersama.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F4F7FB",
-  "theme_color": "#1D4ED8",
+  "background_color": "#F6F4EF",
+  "theme_color": "#101A33",
   "icons": [
     { "src": "icons/icon-72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },

@@ -121,8 +121,12 @@ document.querySelectorAll("[data-nav]").forEach(btn => {
 });
 
 /* ======================================================================
-   6. VALIDASI NAMA (UPPERCASE OTOMATIS, HANYA HURUF)
+   6. VALIDASI NAMA (PROPER CASE OTOMATIS, HANYA HURUF)
    ====================================================================== */
+function toProperCase(str){
+  return str.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+}
+
 function bindNameField(inputId, errorId){
   const input = $(inputId);
   const error = $(errorId);
@@ -130,9 +134,9 @@ function bindNameField(inputId, errorId){
     const cursorPos = input.selectionStart;
     const raw = input.value;
     const cleaned = raw.replace(/[^A-Za-z\s]/g, "");
-    const upper = cleaned.toUpperCase();
-    if (raw !== upper){
-      input.value = upper;
+    const proper = toProperCase(cleaned);
+    if (raw !== proper){
+      input.value = proper;
       input.setSelectionRange(cursorPos, cursorPos);
     }
     error.textContent = cleaned.trim().length === 0 && raw.length > 0

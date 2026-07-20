@@ -42,6 +42,13 @@ const state = {
     fotoBase64: null,
     stream: null
   },
+  karu: {
+    data: null,
+    level: "date",          // "date" | "shift" | "bagian" | "nama"
+    selectedDate: null,
+    selectedShift: null,
+    selectedBagian: null
+  },
   deferredInstallPrompt: null
 };
 
@@ -568,7 +575,233 @@ $("btn-kirim-ijin").addEventListener("click", async () => {
 });
 
 /* ======================================================================
-   12. PWA — INSTALL PROMPT
+   12. AKSES KARU — LOGIN & REKAP BERTINGKAT (Tanggal > Shift > Bagian > Nama)
+   ====================================================================== */
+const KARU_BAGIAN_LIST = ["Wrapping", "Finishing", "Partisi", "Slitter", "Corrugator", "Loading", "CY/TK"];
+const KARU_SHIFT_LIST = ["Shift 1", "Shift 2", "Shift 3"];
+
+function karuParseTanggal(str){
+  const parts = String(str).split("/");
+  const d = Number(parts[0]), m = Number(parts[1]), y = Number(parts[2]);
+  return new Date(y, m - 1, d);
+}
+
+function karuThumbUrl(driveUrl){
+  if (!driveUrl) return "";
+  const match = String(driveUrl).match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w100` : driveUrl;
+}
+
+function karuRow(title, meta, onClick){
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "list-row";
+
+  const text = document.createElement("span");
+  text.className = "list-row__text";
+  const strong = document.createElement("strong");
+  strong.textContent = title;
+  const small = document.createElement("small");
+  small.textContent = meta;
+  text.append(strong, small);
+
+  const arrow = document.createElement("span");
+  arrow.className = "list-row__arrow";
+  arrow.setAttribute("aria-hidden", "true");
+  arrow.textContent = "\u203A";
+
+  btn.append(text, arrow);
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+function karuEmployeeRow(record){
+  const div = document.createElement("div");
+  div.className = "employee-row";
+
+  const img = document.createElement("img");
+  img.className = "employee-row__photo";
+  img.src = karuThumbUrl(record.fotoUrl);
+  img.alt = `Foto ${record.nama}`;
+  img.onerror = () => { img.style.visibility = "hidden"; };
+
+  const name = document.createElement("span");
+  name.className = "employee-row__name";
+  name.textContent = record.nama;
+
+  div.append(img, name);
+  return div;
+}
+
+function renderKaru(){
+  const list = $("karu-list");
+  const empty = $("karu-empty");
+  list.innerHTML = "";
+  empty.hidden = true;
+  $("karu-logout").hidden = state.karu.level !== "date";
+
+  const data = state.karu.data || [];
+
+  if (state.karu.level === "date"){
+    $("karu-title").textContent = "Akses Karu";
+    $("karu-subtitle").textContent = "Pilih tanggal untuk melihat rekap absen masuk.";
+
+    const dates = [...new Set(data.map((r) => r.tanggal))]
+      .sort((a, b) => karuParseTanggal(b) - karuParseTanggal(a));
+
+    if (dates.length === 0){
+      empty.hidden = false;
+      empty.textContent = "Belum ada data absen masuk yang tercatat.";
+      return;
+    }
+
+    dates.forEach((tanggal) => {
+      const count = data.filter((r) => r.tanggal === tanggal).length;
+      list.appendChild(karuRow(tanggal, `${count} orang absen`, () => {
+        state.karu.selectedDate = tanggal;
+        state.karu.level = "shift";
+        renderKaru();
+      }));
+    });
+    return;
+  }
+
+  if (state.karu.level === "shift"){
+    $("karu-title").textContent = "Pilih Shift";
+    $("karu-subtitle").textContent = `Tanggal: ${state.karu.selectedDate}`;
+
+    KARU_SHIFT_LIST.forEach((shift) => {
+      const count = data.filter((r) => r.tanggal === state.karu.selectedDate && r.shift === shift).length;
+      list.appendChild(karuRow(shift, `${count} orang absen`, () => {
+        state.karu.selectedShift = shift;
+        state.karu.level = "bagian";
+        renderKaru();
+      }));
+    });
+    return;
+  }
+
+  if (state.karu.level === "bagian"){
+    $("karu-title").textContent = "Pilih Bagian";
+    $("karu-subtitle").textContent = `${state.karu.selectedDate} — ${state.karu.selectedShift}`;
+
+    KARU_BAGIAN_LIST.forEach((bagian) => {
+      const count = data.filter((r) =>
+        r.tanggal === state.karu.selectedDate &&
+        r.shift === state.karu.selectedShift &&
+        r.bagian === bagian
+      ).length;
+      list.appendChild(karuRow(bagian, `${count} orang`, () => {
+        state.karu.selectedBagian = bagian;
+        state.karu.level = "nama";
+        renderKaru();
+      }));
+    });
+    return;
+  }
+
+  if (state.karu.level === "nama"){
+    $("karu-title").textContent = state.karu.selectedBagian;
+    $("karu-subtitle").textContent = `${state.karu.selectedDate} — ${state.karu.selectedShift}`;
+
+    const records = data.filter((r) =>
+      r.tanggal === state.karu.selectedDate &&
+      r.shift === state.karu.selectedShift &&
+      r.bagian === state.karu.selectedBagian
+    );
+
+    if (records.length === 0){
+      empty.hidden = false;
+      empty.textContent = "Tidak ada karyawan tercatat pada bagian ini.";
+      return;
+    }
+
+    records.forEach((r) => list.appendChild(karuEmployeeRow(r)));
+  }
+}
+
+async function promptKaruPassword(){
+  const { value: password } = await Swal.fire({
+    icon: "question",
+    title: "Akses Karu",
+    text: "Masukkan kode akses untuk melihat rekap absensi.",
+    input: "password",
+    inputPlaceholder: "Kode akses",
+    showCancelButton: true,
+    confirmButtonText: "Masuk",
+    cancelButtonText: "Batal",
+    buttonsStyling: false,
+    customClass: {
+      popup: "app-swal-popup",
+      title: "app-swal-title",
+      htmlContainer: "app-swal-text",
+      confirmButton: "app-swal-confirm btn btn--primary",
+      cancelButton: "app-swal-cancel link-action",
+      input: "app-swal-input"
+    }
+  });
+  return password;
+}
+
+$("btn-akses-karu").addEventListener("click", async () => {
+  if (CONFIG.SCRIPT_URL.includes("PASTE_URL")){
+    showAlert("error", "Belum Terhubung", "URL Google Apps Script belum diatur. Lihat PANDUAN-PEMULA.md.");
+    return;
+  }
+
+  const password = await promptKaruPassword();
+  if (!password) return;
+
+  toggleLoading(true, "Memeriksa akses...");
+  try {
+    const res = await fetch(CONFIG.SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "getRekap", password })
+    });
+    const result = await res.json();
+    toggleLoading(false);
+
+    if (result.status === "success"){
+      state.karu.data = result.data || [];
+      state.karu.level = "date";
+      state.karu.selectedDate = null;
+      state.karu.selectedShift = null;
+      state.karu.selectedBagian = null;
+      showView("view-karu");
+      renderKaru();
+    } else {
+      showAlert("error", "Akses Ditolak", result.message || "Kode akses salah.");
+    }
+  } catch (e) {
+    toggleLoading(false);
+    showAlert("error", "Gagal Terhubung", "Tidak dapat mengambil data rekap. Periksa koneksi internet Anda.");
+  }
+});
+
+$("karu-back").addEventListener("click", () => {
+  if (state.karu.level === "shift"){
+    state.karu.level = "date";
+    state.karu.selectedDate = null;
+  } else if (state.karu.level === "bagian"){
+    state.karu.level = "shift";
+    state.karu.selectedBagian = null;
+  } else if (state.karu.level === "nama"){
+    state.karu.level = "bagian";
+  } else {
+    showView("view-home");
+    return;
+  }
+  renderKaru();
+});
+
+$("karu-logout").addEventListener("click", () => {
+  state.karu.data = null;
+  showView("view-home");
+});
+
+/* ======================================================================
+   13. PWA — INSTALL PROMPT
    ====================================================================== */
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
@@ -589,7 +822,7 @@ window.addEventListener("appinstalled", () => {
 });
 
 /* ======================================================================
-   13. SERVICE WORKER
+   14. SERVICE WORKER
    ====================================================================== */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", () => {

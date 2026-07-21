@@ -9,7 +9,7 @@
 const CONFIG = {
   // Tempel URL Web App Google Apps Script Anda di sini setelah deploy.
   // Panduan lengkap ada di file PANDUAN-PEMULA.md
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyK6mdL_TvDEVuzer41IP5XrJB31J7PlrN9iM0_QkT668S4jKahOKabortRSdx4PF4V_Q/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwP82DNrZaJnkcQ1SO2bcegXD4YMCEP72QlT-5EN8gAEV9Spy7jo-ivOeWlzxmjYd2WBw/exec",
 
   // Koordinat lokasi kantor / pabrik: PT Sentralindo Teguh Gemilang 2
   // Jl. Raya Fatahillah No.35, Kalijaya, Kec. Cikarang Bar., Kab. Bekasi, Jawa Barat 17530
@@ -47,7 +47,9 @@ const state = {
     level: "date",          // "date" | "shift" | "bagian" | "nama"
     selectedDate: null,
     selectedShift: null,
-    selectedBagian: null
+    selectedBagian: null,
+    calendarYear: null,
+    calendarMonth: null
   },
   deferredInstallPrompt: null
 };
@@ -633,9 +635,104 @@ function karuEmployeeRow(record){
   return div;
 }
 
+function karuFormatMonthInput(year, month){
+  return `${year}-${String(month + 1).padStart(2, "0")}`;
+}
+
+function karuMonthNames(){
+  return ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+}
+
+function karuCountForDate(dateStr){
+  return (state.karu.data || []).filter((r) => r.tanggal === dateStr).length;
+}
+
+function karuSetCalendarMonth(year, month){
+  state.karu.calendarYear = year;
+  state.karu.calendarMonth = month;
+  $("karu-cal-picker").value = karuFormatMonthInput(year, month);
+  renderKaruCalendar();
+}
+
+function renderKaruCalendar(){
+  const grid = $("karu-cal-grid");
+  grid.innerHTML = "";
+
+  const year = state.karu.calendarYear;
+  const month = state.karu.calendarMonth;
+  $("karu-cal-picker").value = karuFormatMonthInput(year, month);
+
+  const firstOfMonth = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const offset = (firstOfMonth.getDay() + 6) % 7; // Senin = kolom pertama
+
+  const now = new Date();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  for (let i = 0; i < offset; i++){
+    const blank = document.createElement("span");
+    blank.className = "karu-calendar__day karu-calendar__day--blank";
+    grid.appendChild(blank);
+  }
+
+  let totalBulanIni = 0;
+
+  for (let day = 1; day <= daysInMonth; day++){
+    const dateStr = `${String(day).padStart(2, "0")}/${String(month + 1).padStart(2, "0")}/${year}`;
+    const count = karuCountForDate(dateStr);
+    totalBulanIni += count;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "karu-calendar__day";
+    if (count > 0) btn.classList.add("karu-calendar__day--has-data");
+    if (new Date(year, month, day) > todayMidnight) btn.classList.add("karu-calendar__day--future");
+
+    const num = document.createElement("span");
+    num.textContent = day;
+    btn.appendChild(num);
+
+    if (count > 0){
+      const dot = document.createElement("span");
+      dot.className = "karu-calendar__day-dot";
+      btn.appendChild(dot);
+    }
+
+    btn.addEventListener("click", () => {
+      state.karu.selectedDate = dateStr;
+      state.karu.level = "shift";
+      renderKaru();
+    });
+
+    grid.appendChild(btn);
+  }
+
+  $("karu-cal-summary").textContent = totalBulanIni > 0
+    ? `${totalBulanIni} absen tercatat pada ${karuMonthNames()[month]} ${year}.`
+    : `Belum ada absen tercatat pada ${karuMonthNames()[month]} ${year}.`;
+}
+
+$("karu-cal-prev").addEventListener("click", () => {
+  let y = state.karu.calendarYear, m = state.karu.calendarMonth - 1;
+  if (m < 0){ m = 11; y -= 1; }
+  karuSetCalendarMonth(y, m);
+});
+
+$("karu-cal-next").addEventListener("click", () => {
+  let y = state.karu.calendarYear, m = state.karu.calendarMonth + 1;
+  if (m > 11){ m = 0; y += 1; }
+  karuSetCalendarMonth(y, m);
+});
+
+$("karu-cal-picker").addEventListener("change", (e) => {
+  const [y, m] = e.target.value.split("-").map(Number);
+  if (y && m) karuSetCalendarMonth(y, m - 1);
+});
+
 function renderKaru(){
   const list = $("karu-list");
   const empty = $("karu-empty");
+  const calendar = $("karu-calendar");
   list.innerHTML = "";
   empty.hidden = true;
   $("karu-logout").hidden = state.karu.level !== "date";
@@ -645,26 +742,14 @@ function renderKaru(){
   if (state.karu.level === "date"){
     $("karu-title").textContent = "Akses Karu";
     $("karu-subtitle").textContent = "Pilih tanggal untuk melihat rekap absen masuk.";
-
-    const dates = [...new Set(data.map((r) => r.tanggal))]
-      .sort((a, b) => karuParseTanggal(b) - karuParseTanggal(a));
-
-    if (dates.length === 0){
-      empty.hidden = false;
-      empty.textContent = "Belum ada data absen masuk yang tercatat.";
-      return;
-    }
-
-    dates.forEach((tanggal) => {
-      const count = data.filter((r) => r.tanggal === tanggal).length;
-      list.appendChild(karuRow(tanggal, `${count} orang absen`, () => {
-        state.karu.selectedDate = tanggal;
-        state.karu.level = "shift";
-        renderKaru();
-      }));
-    });
+    calendar.hidden = false;
+    list.hidden = true;
+    renderKaruCalendar();
     return;
   }
+
+  calendar.hidden = true;
+  list.hidden = false;
 
   if (state.karu.level === "shift"){
     $("karu-title").textContent = "Pilih Shift";
@@ -768,6 +853,19 @@ $("btn-akses-karu").addEventListener("click", async () => {
       state.karu.selectedDate = null;
       state.karu.selectedShift = null;
       state.karu.selectedBagian = null;
+
+      if (state.karu.data.length > 0){
+        const latest = state.karu.data
+          .map((r) => karuParseTanggal(r.tanggal))
+          .reduce((a, b) => (a > b ? a : b));
+        state.karu.calendarYear = latest.getFullYear();
+        state.karu.calendarMonth = latest.getMonth();
+      } else {
+        const now = new Date();
+        state.karu.calendarYear = now.getFullYear();
+        state.karu.calendarMonth = now.getMonth();
+      }
+
       showView("view-karu");
       renderKaru();
     } else {

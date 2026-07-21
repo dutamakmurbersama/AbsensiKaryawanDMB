@@ -445,7 +445,8 @@ textarea.input{ resize: vertical; min-height: 84px; }
 /* ==========================================================================
    AKSES KARU — REKAP ABSEN (list bertingkat & daftar karyawan)
    ========================================================================== */
-.karu-list{ display: flex; flex-direction: column; gap: 10px; }
+.karu-list{ display: none; flex-direction: column; gap: 10px; }
+.karu-list:not([hidden]){ display: flex; }
 
 .list-row{
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -482,3 +483,67 @@ textarea.input{ resize: vertical; min-height: 84px; }
 
 .karu-loading{ text-align: center; color: var(--muted); font-size: 13.5px; padding: 20px 0; }
 .karu-empty{ text-align: center; color: var(--muted); font-size: 13.5px; padding: 20px 0; }
+
+/* ==========================================================================
+   AKSES KARU — KONTROL KALENDER (navigasi bulan & tahun)
+   ========================================================================== */
+.karu-calendar{ display: none; margin-bottom: 4px; }
+.karu-calendar:not([hidden]){ display: block; }
+
+.karu-calendar__header{
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-bottom: 14px;
+}
+.karu-calendar__nav{
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--paper); border: 1px solid var(--border);
+  color: var(--text); font-size: 19px; line-height: 1; cursor: pointer;
+}
+.karu-calendar__nav:hover{ background: var(--indigo-tint); border-color: var(--indigo); }
+
+.karu-calendar__picker{
+  flex: 1; text-align: center;
+  border: none; background: none; appearance: none;
+  font-family: var(--font-display); font-weight: 700; font-size: 16.5px; color: var(--text);
+  cursor: pointer; padding: 6px 4px;
+}
+.karu-calendar__picker:focus{ outline: none; }
+
+.karu-calendar__weekdays{
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.karu-calendar__weekdays span{
+  text-align: center; font-size: 10.5px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+
+.karu-calendar__grid{
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.karu-calendar__day{
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 10px;
+  background: var(--paper);
+  color: var(--text);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, transform .12s ease;
+}
+.karu-calendar__day:hover{ background: var(--indigo-tint); transform: translateY(-1px); }
+.karu-calendar__day--blank{ background: none; cursor: default; }
+.karu-calendar__day--blank:hover{ background: none; transform: none; }
+.karu-calendar__day--has-data{ background: var(--indigo); color: #fff; font-weight: 700; }
+.karu-calendar__day--has-data:hover{ filter: brightness(1.08); }
+.karu-calendar__day--future{ opacity: .35; }
+.karu-calendar__day-dot{
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--gold-soft);
+}
+
+.karu-cal-summary{ text-align: center; margin: 14px 0 2px; font-size: 12.5px; color: var(--muted); }

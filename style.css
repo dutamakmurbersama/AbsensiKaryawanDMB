@@ -93,6 +93,7 @@ input, select, textarea{ font-family: inherit; }
    ========================================================================== */
 #app{ flex: 1; display: flex; align-items: flex-start; justify-content: center; padding: 28px 16px 48px; }
 .view{ display: none; width: 100%; max-width: 440px; animation: viewIn .4s cubic-bezier(.22,.61,.36,1); }
+.view.view--wide{ max-width: 720px; }
 .view--active{ display: block; }
 @keyframes viewIn{
   from{ opacity: 0; transform: translateY(10px); }
@@ -537,3 +538,90 @@ textarea.input{ resize: vertical; min-height: 84px; }
 }
 
 .karu-cal-summary{ text-align: center; margin: 14px 0 2px; font-size: 12.5px; color: var(--muted); }
+
+/* ==========================================================================
+   AKSES KARU — TABEL MATRIKS KEHADIRAN BULANAN
+   ========================================================================== */
+.karu-matrix-wrap{
+  display: none;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  -webkit-overflow-scrolling: touch;
+}
+.karu-matrix-wrap:not([hidden]){ display: block; }
+
+.karu-matrix{
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12.5px;
+}
+.karu-matrix th, .karu-matrix td{
+  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid var(--border-soft);
+  padding: 8px 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+.karu-matrix th:last-child, .karu-matrix td:last-child{ border-right: none; }
+.karu-matrix thead th{
+  background: var(--paper);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  position: sticky; top: 0; z-index: 2;
+}
+.karu-matrix tbody tr:hover{ background: var(--indigo-tint); }
+
+.karu-matrix__no{ color: var(--muted); font-weight: 600; }
+.karu-matrix__photo-cell{ padding: 6px 8px; }
+.karu-matrix__photo{
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 0 0 1.5px var(--gold-line);
+  background: var(--indigo-tint); display: block;
+}
+.karu-matrix__name{
+  text-align: left; font-weight: 700; color: var(--text);
+  position: sticky; left: 0; background: var(--surface); z-index: 1;
+}
+.karu-matrix tbody tr:hover .karu-matrix__name{ background: #F1F3FB; }
+.karu-matrix__bagian{ color: var(--muted); font-weight: 600; }
+
+.karu-matrix__day-head{ min-width: 30px; }
+
+.karu-dot-cell{ position: relative; }
+.karu-dot{
+  display: inline-block;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--success);
+  cursor: default;
+}
+.karu-dot-cell{ position: relative; }
+.karu-dot-tooltip{
+  position: absolute;
+  bottom: 100%; left: 50%;
+  transform: translate(-50%, -6px) scale(0.9);
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 8px;
+  opacity: 0; visibility: hidden;
+  transition: opacity .12s ease, transform .12s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.karu-dot-tooltip::after{
+  content: "";
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: var(--ink);
+}
+.karu-dot-cell:hover .karu-dot-tooltip,
+.karu-dot-cell.is-active .karu-dot-tooltip{
+  opacity: 1; visibility: visible; transform: translate(-50%, -2px) scale(1);
+}
+
+.karu-matrix-summary{ text-align: center; margin: 12px 0 2px; font-size: 12.5px; color: var(--muted); }
